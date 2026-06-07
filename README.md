@@ -19,20 +19,21 @@
 
 ## 🏗️ 시스템 아키텍처
 
-```
-[사용자 기기]                                        [서버]
-     |                                                  |
-     |── 1. 로그인 요청 (user_id) ───────────────────>  |
-     |                                                  |── Challenge(난수) 생성
-     |<── 2. Challenge 전송 ──────────────────────────  |
-     |                                                  |
-     |── 개인키로 Challenge 서명                        |
-     |── 기기 상태 수집 (is_agent_safe, IP 등)          |
-     |                                                  |
-     |── 3. 서명값 + 기기 상태(is_agent_safe) ────────> |
-                                                        |── 1) 기기 무결성 상태 체크 (이중 잠금)
-                                                        |── 2) PQC 공개키로 서명 검증
-                                                        |── 성공 → 세션 발급
+```mermaid
+sequenceDiagram
+    participant C as 🖥️ 사용자 기기
+    participant S as 🔐 서버
+
+    C->>S: 1. 로그인 요청 (user_id)
+    S-->>C: 2. Challenge (난수) 발급
+
+    Note over C: 개인키로 Challenge 서명<br/>기기 상태 수집 (is_agent_safe, IP)
+
+    C->>S: 3. 서명값 + 기기 상태 전송
+    
+    Note over S: ① 기기 무결성 체크 (이중 잠금)<br/>② PQC 공개키로 서명 검증
+    
+    S-->>C: ✅ 세션 토큰 발급
 ```
 
 ---
