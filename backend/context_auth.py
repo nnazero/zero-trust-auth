@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from pqc.sign import dilithium2 as pqc_sign
 import os, base64, psutil
+from pqc.sign import dilithium2 as pqc_sign
 
 app = FastAPI(title="Zero Trust Context Auth")
 
@@ -16,6 +17,7 @@ app.add_middleware(
 # 임시 DB
 user_db = {}
 challenge_store = {}
+key_store = {}  # user_id: secret_key (임시저장)
 
 # 허용된 IP 대역 (로컬 테스트용)
 ALLOWED_IP_PREFIXES = ["127.0.0.1", "192.168."]
@@ -27,6 +29,10 @@ class RegisterRequest(BaseModel):
     user_id: str
     public_key: str
 
+class SignRequest(BaseModel):
+    user_id: str
+    challenge: str
+
 class AuthRequest(BaseModel):
     user_id: str
     signature: str
@@ -37,8 +43,15 @@ class AuthRequest(BaseModel):
 # 1. 사용자 등록
 @app.post("/register")
 def register(req: RegisterRequest):
-    user_db[req.user_id] = req.public_key
+    # PQC 키 쌍 생성
+    public_key, secret_key = pqc_sign.keypair()
+    
+    # 공개키는 DB에, 개인키는 임시 저장
+    user_db[req.user_id] = base64.b64encode(public_key).decode()
+    key_store[req.user_id] = secret_key
+    
     return {"message": f"{req.user_id} 등록 완료"}
+
 
 # 2. 챌린지 발급
 @app.get("/challenge/{user_id}")
@@ -48,6 +61,16 @@ def get_challenge(user_id: str):
     challenge = base64.b64encode(os.urandom(32)).decode()
     challenge_store[user_id] = challenge
     return {"challenge": challenge}
+
+@app.post("/sign")
+def sign(req: SignRequest):
+    if req.user_id not in key_store:
+        raise HTTPException(status_code=404, detail="키 없음, 먼저 /register 호출")
+    
+    secret_key = key_store[req.user_id]
+    signature = pqc_sign.sign(req.challenge.encode(), secret_key)
+    return {"signature": base64.b64encode(signature).decode()}
+
 
 # 3. 이중 잠금 검증
 def check_context(is_agent_safe: bool, client_ip: str):
