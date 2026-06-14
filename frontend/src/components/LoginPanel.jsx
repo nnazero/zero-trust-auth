@@ -22,19 +22,12 @@ export default function LoginPanel({ onAuthResult }) {
     try {
       addLog("🔑 키 쌍 생성 중...");
 
-      // 1. 등록 (서버에서 PQC 키 쌍 생성)
-      await axios.post(`${BASE_URL}/register`, {
-        user_id: userId,
-        public_key: "",
-      });
-      addLog("✅ 공개키 등록 완료");
-
-      // 2. 챌린지 요청
+      //챌린지 요청
       const challengeRes = await axios.get(`${BASE_URL}/challenge/${userId}`);
       const challenge = challengeRes.data.challenge;
       addLog(`📩 챌린지 수신: ${challenge.slice(0, 15)}...`);
 
-      // 3. 서버에서 서명값 받아오기
+      //서버에서 서명값 받아오기
       addLog("✍️ ML-DSA 서명 중...");
       const start = performance.now();
       const signRes = await axios.post(`${BASE_URL}/sign`, {
@@ -45,10 +38,10 @@ export default function LoginPanel({ onAuthResult }) {
       const elapsed = (performance.now() - start).toFixed(2);
       addLog(`✅ 서명 완료! 소요시간: ${elapsed}ms`);
 
-      // 4. 기기 상태 수집
+      //기기 상태 수집
       addLog(`📡 기기 상태: IP=${clientIp}, 에이전트=${isAgentSafe ? "✅" : "❌"}`);
 
-      // 5. 검증 요청
+      //검증 요청
       addLog("🔐 서버 검증 요청 중...");
       const verifyRes = await axios.post(`${BASE_URL}/verify`, {
         user_id: userId,
