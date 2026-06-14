@@ -19,6 +19,18 @@
 
 ## 🏗️ 시스템 아키텍처
 
+### 1) 계정 생성 (기기 등록)
+```mermaid
+sequenceDiagram
+    participant C as 🖥️ 사용자 기기
+    participant S as 🔐 서버
+
+    C->>S: User ID + 공개키 + 기기 프로필(IP, 에이전트 필수 여부)
+    S->>S: DB에 User, DeviceProfile 저장
+    S-->>C: 등록 완료
+```
+
+### 2) 로그인 (인증)
 ```mermaid
 sequenceDiagram
     participant C as 🖥️ 사용자 기기
@@ -27,15 +39,14 @@ sequenceDiagram
     C->>S: 1. 로그인 요청 (user_id)
     S-->>C: 2. Challenge (난수) 발급
 
-    Note over C: 개인키로 Challenge 서명<br/>기기 상태 수집 (is_agent_safe, IP)
+    Note over C: 개인키로 Challenge 서명<br/>현재 기기 상태 수집 (IP, 에이전트 상태)
 
     C->>S: 3. 서명값 + 기기 상태 전송
     
-    Note over S: ① 기기 무결성 체크 (이중 잠금)<br/>② PQC 공개키로 서명 검증
+    Note over S: ① 등록된 기기 프로필과 비교 (이중 잠금)<br/>② PQC 공개키로 서명 검증
     
     S-->>C: ✅ 세션 토큰 발급
 ```
-
 ---
 
 ## 🗺️ 개발 로드맵
@@ -43,6 +54,7 @@ sequenceDiagram
 - [x] **Phase 1-1** — FastAPI 챌린지-응답 인증 서버 구현
 - [x] **Phase 1-2** — 양자 내성 암호(PQC) 키 쌍으로 교체
 - [x] **Phase 1-3** — 기기 무결성 컨텍스트 이중 잠금 추가
+- [x] **Phase 1-3-확장** — 유저별 기기 프로필 DB(SQLite) 기반 이중 잠금으로 고도화
 - [x] **Phase 1-4** — React 실시간 모니터링 대시보드
 - [x] **Phase 1-5** — 동시성 부하 테스트 및 ECC vs PQC 연산 오버헤드 정량 분석
 - [ ] **Phase 2** — 서버 DB 다이어트 + 자기주권형 분산 데이터 구조
@@ -54,9 +66,10 @@ sequenceDiagram
 | 영역 | 기술 |
 |------|------|
 | Backend | Python 3.12, FastAPI, uvicorn |
+| Database | SQLite (SQLAlchemy ORM) |
 | 암호화 | ECC (SECP256R1) → ML-DSA (Dilithium2, NIST 표준 PQC 알고리즘) |
 | Frontend | React, Vite, CSS Modules |
-| 인증 방식 | Passwordless Challenge-Response + 기기 무결성 이중 잠금 |
+| 인증 방식 | Passwordless Challenge-Response + 유저별 기기 프로필 기반 이중 잠금 |
 
 ---
 
@@ -90,7 +103,7 @@ npm run dev
 | 서명 크기 | 70 bytes | 2420 bytes | 34.6배 |
 
 **결론:**
-연산 속도는 ECC와 큰 차이가 없지만(1.2-1.5배), 키와 서명 크기는 20~35배 커짐.
+연산 속도는 ECC와 큰 차이가 없지만(1.2-1.5배), 키와 서명 크기는 20-35배 커짐.
 크기 증가는 네트워크 트래픽과 저장 공간에 영향을 주지만, 양자 컴퓨터 공격에 대한 내성을 확보하는 비용으로는 합리적인 수준.
 
 벤치마크 코드: [backend/benchmark.py](./backend/benchmark.py)
