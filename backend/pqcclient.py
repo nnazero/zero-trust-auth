@@ -4,7 +4,7 @@ import time
 from pqc.sign import dilithium2 as pqc_sign
 
 BASE_URL = "http://127.0.0.1:8001"  # pqcauth.py는 8001 포트로 실행할 거예요
-USER_ID = "nayoung"
+USER_ID = "user1"
 
 # ===============================================
 # 1단계: PQC 키 쌍 생성

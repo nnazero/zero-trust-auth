@@ -5,7 +5,9 @@ import styles from "./LoginPanel.module.css";
 const BASE_URL = "http://127.0.0.1:8002";
 
 export default function LoginPanel({ onAuthResult }) {
-  const [userId, setUserId] = useState("nayoung");
+  const [userId, setUserId] = useState("user1");
+  const [clientIp, setClientIp] = useState("127.0.0.1");
+  const [isAgentSafe, setIsAgentSafe] = useState(true);
   const [status, setStatus] = useState("idle");
   const [logs, setLogs] = useState([]);
 
@@ -44,8 +46,6 @@ export default function LoginPanel({ onAuthResult }) {
       addLog(`✅ 서명 완료! 소요시간: ${elapsed}ms`);
 
       // 4. 기기 상태 수집
-      const clientIp = "127.0.0.1";
-      const isAgentSafe = true;
       addLog(`📡 기기 상태: IP=${clientIp}, 에이전트=${isAgentSafe ? "✅" : "❌"}`);
 
       // 5. 검증 요청
@@ -85,6 +85,22 @@ export default function LoginPanel({ onAuthResult }) {
         onChange={(e) => setUserId(e.target.value)}
         placeholder="User ID"
       />
+
+      <input
+        className={styles.input}
+        value={clientIp}
+        onChange={(e) => setClientIp(e.target.value)}
+        placeholder="현재 IP"
+      />
+
+      <label className={styles.checkboxRow}>
+        <input
+          type="checkbox"
+          checked={isAgentSafe}
+          onChange={(e) => setIsAgentSafe(e.target.checked)}
+        />
+        보안 에이전트 실행중
+      </label>
 
       <button
         className={`${styles.button} ${status === "loading" ? styles.buttonLoading : ""}`}

@@ -4,7 +4,7 @@ import socket
 from pqc.sign import dilithium2 as pqc_sign
 
 BASE_URL = "http://127.0.0.1:8002"
-USER_ID = "nayoung"
+USER_ID = "user1"
 
 # ===============================================
 # 기기 상태 수집 (이중 잠금용)
