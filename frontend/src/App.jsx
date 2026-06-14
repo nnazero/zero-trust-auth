@@ -1,4 +1,5 @@
 import { useState } from "react";
+import RegisterPanel from "./components/RegisterPanel";
 import LoginPanel from "./components/LoginPanel";
 import Dashboard from "./components/Dashboard";
 import styles from "./App.module.css";
@@ -14,6 +15,7 @@ export default function App() {
       </div>
 
       <div className={styles.panels}>
+        <RegisterPanel />
         <LoginPanel onAuthResult={setAuthResult} />
         <Dashboard result={authResult} />
       </div>

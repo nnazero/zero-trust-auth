@@ -30,14 +30,23 @@
   box-sizing: border-box;
 }
 
+.checkboxRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
 .button {
   width: 100%;
   padding: 12px;
   border-radius: 8px;
   border: none;
-  background: #4f46e5;
-  color: #fff;
+  background: #a6e3a1;
+  color: #11111b;
   font-size: 15px;
+  font-weight: bold;
   cursor: pointer;
   margin-bottom: 20px;
   transition: background 0.2s;
@@ -45,6 +54,7 @@
 
 .buttonLoading {
   background: #555;
+  color: #cdd6f4;
   cursor: not-allowed;
 }
 
@@ -52,7 +62,7 @@
   background: #181825;
   border-radius: 8px;
   padding: 12px;
-  min-height: 120px;
+  min-height: 80px;
   font-size: 13px;
 }
 
@@ -63,12 +73,4 @@
 .time {
   color: #6c7086;
   margin-right: 8px;
-}
-
-.checkboxRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-  font-size: 14px;
 }

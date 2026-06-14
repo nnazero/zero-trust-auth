@@ -4,7 +4,7 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import hashes, serialization
 
 BASE_URL = "http://127.0.0.1:8000"
-USER_ID = "nayoung"
+USER_ID = "user1"
 
 # 1. 키 쌍 생성 (개인키 + 공개키)
 print("🔑 키 쌍 생성 중...")
