@@ -1,0 +1,76 @@
+.container {
+  background: #1e1e2e;
+  border-radius: 12px;
+  padding: 32px;
+  width: 420px;
+  color: #cdd6f4;
+  font-family: monospace;
+}
+
+.title {
+  margin: 0 0 4px;
+  font-size: 20px;
+}
+
+.subtitle {
+  margin: 0 0 24px;
+  font-size: 13px;
+  color: #6c7086;
+}
+
+.input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #45475a;
+  background: #313244;
+  color: #cdd6f4;
+  font-size: 14px;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+}
+
+.checkboxRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.button {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  background: #a6e3a1;
+  color: #11111b;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-bottom: 20px;
+  transition: background 0.2s;
+}
+
+.buttonLoading {
+  background: #555;
+  color: #cdd6f4;
+  cursor: not-allowed;
+}
+
+.logBox {
+  background: #181825;
+  border-radius: 8px;
+  padding: 12px;
+  min-height: 80px;
+  font-size: 13px;
+}
+
+.logLine {
+  margin-bottom: 6px;
+}
+
+.time {
+  color: #6c7086;
+  margin-right: 8px;
+}
