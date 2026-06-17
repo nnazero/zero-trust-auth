@@ -1,0 +1,111 @@
+.container {
+  background: #1e1e2e;
+  border-radius: 12px;
+  padding: 32px;
+  width: 420px;
+  color: #cdd6f4;
+  font-family: monospace;
+}
+
+.title {
+  margin: 0 0 4px;
+  font-size: 20px;
+}
+
+.subtitle {
+  margin: 0 0 24px;
+  font-size: 13px;
+  color: #6c7086;
+}
+
+.layerBox {
+  background: #181825;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.layerLabel {
+  font-size: 12px;
+  color: #94e2d5;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.layerValue {
+  font-size: 13px;
+  word-break: break-all;
+  margin-bottom: 8px;
+}
+
+.smallButton {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  background: #45475a;
+  color: #cdd6f4;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #45475a;
+  background: #313244;
+  color: #cdd6f4;
+  font-size: 14px;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+}
+
+.buttonRow {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.button {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  background: #89b4fa;
+  color: #11111b;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.dataBox {
+  background: #181825;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  font-size: 12px;
+}
+
+.cipherText {
+  word-break: break-all;
+  color: #f9e2af;
+  max-height: 60px;
+  overflow-y: auto;
+}
+
+.logBox {
+  background: #181825;
+  border-radius: 8px;
+  padding: 12px;
+  min-height: 60px;
+  font-size: 12px;
+}
+
+.logLine {
+  margin-bottom: 4px;
+}
+
+.time {
+  color: #6c7086;
+  margin-right: 8px;
+}
