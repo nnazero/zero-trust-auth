@@ -1,7 +1,7 @@
 # 🔐 Zero Trust Auth — 양자 내성 패스키 인증 시스템
 
 > 기존 비밀번호·SMS 2차 인증의 한계를 넘어,  
-> **양자 내성 암호(PQC) + 기기 무결성 검증**으로 구현한 차세대 Zero Trust 인증 시스템
+> **양자 내성 암호(PQC) + 기기 컨텍스트 검증**으로 구현한 Zero Trust 철학을 참고한 패스워드리스 인증 시스템
 
 ---
 
@@ -12,8 +12,9 @@
 | 비밀번호 | 서버 DB 탈취 시 전체 계정 노출 |
 | SMS 2차 인증 | AiTM 피싱 공격으로 우회 가능 |
 | RSA/ECC 암호 | 양자 컴퓨터 등장 시 해독 가능 |
+| 중앙 집중식 개인정보 DB | 서버 침해 시 전체 사용자 정보 일괄 유출 |
 
-→ **서버는 공개키만 저장, 개인키는 절대 서버에 전송하지 않는 구조**로 설계
+→ **서버는 공개키만 저장, 개인정보는 사용자 기기에 암호화 저장하는 자기주권형 구조**로 설계
 
 ---
 
@@ -43,21 +44,50 @@ sequenceDiagram
 
     C->>S: 3. 서명값 + 기기 상태 전송
     
-    Note over S: ① 등록된 기기 프로필과 비교 (이중 잠금)<br/>② PQC 공개키로 서명 검증
+    Note over S: 1 등록된 기기 프로필과 비교 (이중 잠금)<br/>2 PQC 공개키로 서명 검증
     
     S-->>C: ✅ 세션 토큰 발급
 ```
+
+---
+
+## 🔒 데이터 보호 계층 (Vault)
+
+인증과 데이터 보호는 역할이 분리된 별도 계층으로 동작합니다.
+
+| 계층 | 역할 | 키 |
+|------|------|-----|
+| Authentication Layer | 신원 증명 (로그인) | PQC 공개키/개인키 |
+| Encryption Layer | 개인정보 보호 (저장) | DEK (Data Encryption Key, 기기에서 생성) |
+
+DEK는 사용자의 두 번째 개인키가 아니라, Envelope Encryption에서 착안한 데이터 암호화 전용 키입니다.
+브라우저에서 생성되어 서버로 전송되지 않으며, 서버는 암호화된 vault만 전달받아 평문 데이터를 알 수 없습니다.
+
+```mermaid
+flowchart LR
+    A[Authentication Layer<br/>PQC 공개키/개인키] -->|신원 증명| S[서버]
+    B[Encryption Layer<br/>DEK - 기기 생성] -->|개인정보 암호화| V[암호화된 Vault]
+    V -.전송시 평문 불가.-> S
+```
+
 ---
 
 ## 🗺️ 개발 로드맵
 
 - [x] **Phase 1-1** — FastAPI 챌린지-응답 인증 서버 구현
 - [x] **Phase 1-2** — 양자 내성 암호(PQC) 키 쌍으로 교체
-- [x] **Phase 1-3** — 기기 무결성 컨텍스트 이중 잠금 추가
+- [x] **Phase 1-3** — 기기 컨텍스트 검증 기반 이중 잠금 추가
 - [x] **Phase 1-3-확장** — 유저별 기기 프로필 DB(SQLite) 기반 이중 잠금으로 고도화
 - [x] **Phase 1-4** — React 실시간 모니터링 대시보드
-- [x] **Phase 1-5** — 동시성 부하 테스트 및 ECC vs PQC 연산 오버헤드 정량 분석
-- [ ] **Phase 2** — 서버 DB 다이어트 + 자기주권형 분산 데이터 구조
+- [x] **Phase 1-5** — ECC vs PQC 연산 오버헤드 정량 벤치마크
+- [ ] **Phase 2-1** — 클라이언트 개인정보 DEK 기반 암호화 저장 (Vault) — 서버 DB 다이어트
+- [ ] **Phase 2-2** — 분산 서비스 검증 파이프라인 — 서버는 검증만, 메모리 처리 후 즉시 삭제
+- [ ] **Phase 3-1** — README 용어 정정 + 한계점 섹션 정리
+- [ ] **Phase 3-2** — 감사 로그(Audit Log) + 해시체인 + Key Rotation 공격 방어
+- [ ] **Phase 3-3** — Context Integrity 서명 (컨텍스트 위변조 방지)
+- [ ] **Phase 3-4** — Oracle Attack 방어 (에러 메시지 통일)
+- [ ] **Phase 3-5** — 비동기 처리 개선 (PQC 연산 run_in_threadpool)
+- [ ] **Phase 3-6** — 위협 모델 문서화, WebAuthn/FIDO2 비교 분석
 
 ---
 
@@ -69,7 +99,7 @@ sequenceDiagram
 | Database | SQLite (SQLAlchemy ORM) |
 | 암호화 | ECC (SECP256R1) → ML-DSA (Dilithium2, NIST 표준 PQC 알고리즘) |
 | Frontend | React, Vite, CSS Modules |
-| 인증 방식 | Passwordless Challenge-Response + 유저별 기기 프로필 기반 이중 잠금 |
+| 인증 방식 | Passwordless Challenge-Response + 유저별 기기 컨텍스트 검증 (이중 잠금) |
 
 ---
 
