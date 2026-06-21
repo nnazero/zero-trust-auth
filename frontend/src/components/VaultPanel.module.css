@@ -78,6 +78,28 @@
   cursor: pointer;
 }
 
+.secondaryButton {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #45475a;
+  background: transparent;
+  color: #94e2d5;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.secondaryButton:disabled {
+  color: #45475a;
+  cursor: not-allowed;
+}
+
+.notice {
+  font-size: 12px;
+  color: #f9e2af;
+  margin-bottom: 10px;
+}
+
 .dataBox {
   background: #181825;
   border-radius: 8px;
