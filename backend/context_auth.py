@@ -16,12 +16,13 @@ app.add_middleware(
 
 challenge_store = {}
 key_store = {}
+session_store = {}
 
 class RegisterRequest(BaseModel):
     user_id: str
     public_key: str
-    trusted_ip: str          # 신뢰하는 IP (기기 프로필)
-    agent_required: bool = True  # 보안 에이전트 필수 여부
+    trusted_ip: str   
+    agent_required: bool = True  
 
 class SignRequest(BaseModel):
     user_id: str
@@ -123,7 +124,6 @@ def verify(req: AuthRequest):
     if not challenge:
         raise HTTPException(status_code=400, detail="챌린지 없음")
 
-    # 이중 잠금 먼저 체크
     check_context(req.user_id, req.is_agent_safe, req.client_ip)
 
     try:
@@ -133,10 +133,14 @@ def verify(req: AuthRequest):
         pqc_sign.verify(signature, challenge.encode(), public_key)
 
         del challenge_store[req.user_id]
+
+        session_token = base64.b64encode(os.urandom(16)).decode()
+        session_store[session_token] = req.user_id
+
         return {
             "message": "인증 성공",
             "context_check": "이중 잠금 통과",
-            "session_token": base64.b64encode(os.urandom(16)).decode()
+            "session_token": session_token
         }
     except HTTPException:
         raise
