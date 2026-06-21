@@ -1,7 +1,10 @@
 import { useState } from "react";
+import axios from "axios";
 import styles from "./VaultPanel.module.css";
 
-export default function VaultPanel() {
+const BASE_URL = "http://127.0.0.1:8002";
+
+export default function VaultPanel({ session }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -85,6 +88,55 @@ export default function VaultPanel() {
     }
   };
 
+  const sendToServer = async () => {
+    if (!session) {
+      addLog("로그인이 필요합니다");
+      return;
+    }
+    if (!encrypted) {
+      addLog("먼저 암호화를 진행하세요");
+      return;
+    }
+
+    try {
+      addLog("암호문에 대한 서명 요청 중...");
+      const signRes = await axios.post(`${BASE_URL}/sign`, {
+        user_id: session.userId,
+        challenge: encrypted,
+      });
+
+      await axios.post(`${BASE_URL}/vault`, {
+        user_id: session.userId,
+        session_token: session.token,
+        ciphertext: encrypted,
+        signature: signRes.data.signature,
+      });
+
+      addLog("서버 저장 완료 (서명 검증만 수행, 메모리에만 보관)");
+    } catch (err) {
+      addLog(`전송 실패: ${err.response?.data?.detail || "알 수 없는 오류"}`);
+    }
+  };
+
+  //서버에서 암호문 조회 (복호화 DEK)
+  const loadFromServer = async () => {
+    if (!session) {
+      addLog("로그인이 필요합니다");
+      return;
+    }
+
+    try {
+      const res = await axios.get(`${BASE_URL}/vault/${session.userId}`, {
+        params: { session_token: session.token },
+      });
+      setEncrypted(res.data.ciphertext);
+      setDecrypted(null);
+      addLog("서버에서 암호문 수신 (서버는 평문을 알 수 없음)");
+    } catch (err) {
+      addLog(`조회 실패: ${err.response?.data?.detail || "알 수 없는 오류"}`);
+    }
+  };
+
   return (
     <div className={styles.container}>
       <h2 className={styles.title}>데이터 보호 계층 (Vault)</h2>
@@ -126,6 +178,17 @@ export default function VaultPanel() {
         </button>
       </div>
 
+      {!session && <div className={styles.notice}>로그인 후 서버 전송이 가능합니다</div>}
+
+      <div className={styles.buttonRow}>
+        <button className={styles.secondaryButton} onClick={sendToServer} disabled={!session}>
+          서버로 전송
+        </button>
+        <button className={styles.secondaryButton} onClick={loadFromServer} disabled={!session}>
+          서버에서 불러오기
+        </button>
+      </div>
+      
       {encrypted && (
         <div className={styles.dataBox}>
           <div className={styles.layerLabel}>암호화된 Vault</div>
