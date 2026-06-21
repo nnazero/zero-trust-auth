@@ -58,7 +58,9 @@ export default function LoginPanel({ onAuthResult }) {
         logs,
         elapsed,
         token: verifyRes.data.session_token,
+        userId,
       });
+      
     } catch (err) {
       const msg = err.response?.data?.detail || "알 수 없는 오류";
       addLog(`❌ 실패: ${msg}`);
