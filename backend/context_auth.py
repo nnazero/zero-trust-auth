@@ -17,6 +17,7 @@ app.add_middleware(
 challenge_store = {}
 key_store = {}
 session_store = {}
+vault_store = {}
 
 class RegisterRequest(BaseModel):
     user_id: str
@@ -34,6 +35,16 @@ class AuthRequest(BaseModel):
     # 이중 잠금: 기기 상태 추가
     is_agent_safe: bool
     client_ip: str
+
+class VaultStoreRequest(BaseModel):
+    user_id: str
+    session_token: str
+    ciphertext: str 
+    signature: str   
+
+class LogoutRequest(BaseModel):
+    user_id: str
+    session_token: str
 
 # 1. 사용자 등록
 @app.post("/register")
@@ -150,3 +161,43 @@ def verify(req: AuthRequest):
 @app.get("/")
 def root():
     return {"message": "Zero Trust Context Auth Server 🚀"}
+
+# 5. 세션 유효성 확인
+def check_session(user_id: str, session_token: str):
+    if session_store.get(session_token) != user_id:
+        raise HTTPException(status_code=401, detail="세션이 유효하지 않습니다")
+
+
+# 6. Vault 저장
+@app.post("/vault")
+def store_vault(req: VaultStoreRequest):
+    check_session(req.user_id, req.session_token)
+
+    db = SessionLocal()
+    user = db.query(User).filter(User.user_id == req.user_id).first()
+    db.close()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="유저 없음")
+
+    try:
+        public_key = base64.b64decode(user.public_key)
+        signature = base64.b64decode(req.signature)
+        pqc_sign.verify(signature, req.ciphertext.encode(), public_key)
+    except Exception:
+        raise HTTPException(status_code=401, detail="서명 검증 실패")
+
+    vault_store[req.user_id] = req.ciphertext
+    return {"message": "Vault 저장 완료 (메모리, DB 미사용)"}
+
+
+# 7. Vault 조회
+@app.get("/vault/{user_id}")
+def get_vault(user_id: str, session_token: str):
+    check_session(user_id, session_token)
+
+    ciphertext = vault_store.get(user_id)
+    if ciphertext is None:
+        raise HTTPException(status_code=404, detail="저장된 Vault 없음")
+
+    return {"ciphertext": ciphertext}
