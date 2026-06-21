@@ -201,3 +201,14 @@ def get_vault(user_id: str, session_token: str):
         raise HTTPException(status_code=404, detail="저장된 Vault 없음")
 
     return {"ciphertext": ciphertext}
+
+# 8. 로그아웃
+@app.post("/logout")
+def logout(req: LogoutRequest):
+    check_session(req.user_id, req.session_token)
+
+    session_store.pop(req.session_token, None)
+    vault_store.pop(req.user_id, None)
+    challenge_store.pop(req.user_id, None)
+
+    return {"message": "로그아웃 완료, 메모리에서 삭제됨"}
