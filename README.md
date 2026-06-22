@@ -80,8 +80,8 @@ flowchart LR
 - [x] **Phase 1-3-확장** — 유저별 기기 프로필 DB(SQLite) 기반 이중 잠금으로 고도화
 - [x] **Phase 1-4** — React 실시간 모니터링 대시보드
 - [x] **Phase 1-5** — ECC vs PQC 연산 오버헤드 정량 벤치마크
-- [ ] **Phase 2-1** — 클라이언트 개인정보 DEK 기반 암호화 저장 (Vault) — 서버 DB 다이어트
-- [ ] **Phase 2-2** — 분산 서비스 검증 파이프라인 — 서버는 검증만, 메모리 처리 후 즉시 삭제
+- [x] **Phase 2-1** — 클라이언트 개인정보 DEK 기반 암호화 저장 (Vault) — 서버 DB 다이어트
+- [x] **Phase 2-2** — 분산 서비스 검증 파이프라인 — 서버는 검증만, 메모리 처리 후 즉시 삭제
 - [ ] **Phase 3-1** — README 용어 정정 + 한계점 섹션 정리
 - [ ] **Phase 3-2** — 감사 로그(Audit Log) + 해시체인 + Key Rotation 공격 방어
 - [ ] **Phase 3-3** — Context Integrity 서명 (컨텍스트 위변조 방지)
