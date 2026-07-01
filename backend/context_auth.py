@@ -42,6 +42,11 @@ class VaultStoreRequest(BaseModel):
     ciphertext: str 
     signature: str   
 
+class KeyRotateRequest(BaseModel):
+    user_id: str
+    new_public_key: str
+    signature: str
+
 class LogoutRequest(BaseModel):
     user_id: str
     session_token: str
@@ -54,9 +59,9 @@ def register(req: RegisterRequest):
 
     db = SessionLocal()
     try:
-        # 기존 계정 덮어쓰기
-        db.query(User).filter(User.user_id == req.user_id).delete()
-        db.query(DeviceProfile).filter(DeviceProfile.user_id == req.user_id).delete()
+        existing = db.query(User).filter(User.user_id == req.user_id).first()
+        if existing:
+            raise HTTPException(status_code=409, detail="이미 등록된 유저입니다. 공개키 교체는 /rotate-key를 사용하세요.")
 
         db.add(User(
             user_id=req.user_id,
@@ -212,3 +217,28 @@ def logout(req: LogoutRequest):
     challenge_store.pop(req.user_id, None)
 
     return {"message": "로그아웃 완료, 메모리에서 삭제됨"}
+
+# 9. 공개키 교체
+@app.post("/rotate-key")
+def rotate_key(req: KeyRotateRequest):
+    db = SessionLocal()
+    user = db.query(User).filter(User.user_id == req.user_id).first()
+
+    if not user:
+        db.close()
+        raise HTTPException(status_code=404, detail="유저 없음")
+
+    try:
+        public_key = base64.b64decode(user.public_key)
+        signature = base64.b64decode(req.signature)
+        message = f"rotate:{req.user_id}:{req.new_public_key}".encode()
+        pqc_sign.verify(signature, message, public_key)
+    except Exception:
+        db.close()
+        raise HTTPException(status_code=401, detail="기존 키 서명 검증 실패")
+
+    user.public_key = req.new_public_key
+    db.commit()
+    db.close()
+
+    return {"message": "공개키 교체 완료 (기존 키 서명 검증 통과)"}
