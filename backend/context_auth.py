@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import os, base64
 from pqc.sign import dilithium2 as pqc_sign
-from backend.database import SessionLocal, User, DeviceProfile
+from backend.database import SessionLocal, User, DeviceProfile, AuditLog, Base
 
 app = FastAPI(title="Zero Trust Context Auth")
 
@@ -140,7 +140,11 @@ def verify(req: AuthRequest):
     if not challenge:
         raise HTTPException(status_code=400, detail="챌린지 없음")
 
-    check_context(req.user_id, req.is_agent_safe, req.client_ip)
+    try:
+        check_context(req.user_id, req.is_agent_safe, req.client_ip)
+    except HTTPException:
+        write_audit_log(req.user_id, "login_fail", f"context_lock_failed ip:{req.client_ip}")
+        raise
 
     try:
         public_key = base64.b64decode(user.public_key)
@@ -152,6 +156,7 @@ def verify(req: AuthRequest):
 
         session_token = base64.b64encode(os.urandom(16)).decode()
         session_store[session_token] = req.user_id
+        write_audit_log(req.user_id, "login_success", f"ip:{req.client_ip}")
 
         return {
             "message": "인증 성공",
@@ -166,6 +171,21 @@ def verify(req: AuthRequest):
 @app.get("/")
 def root():
     return {"message": "Zero Trust Context Auth Server 🚀"}
+
+def write_audit_log(user_id: str, event: str, detail: str = None):
+    from datetime import datetime
+    db = SessionLocal()
+    try:
+        log = AuditLog(
+            user_id=user_id,
+            event=event,
+            detail=detail,
+            timestamp=datetime.utcnow().isoformat()
+        )
+        db.add(log)
+        db.commit()
+    finally:
+        db.close()
 
 # 5. 세션 유효성 확인
 def check_session(user_id: str, session_token: str):
@@ -241,4 +261,5 @@ def rotate_key(req: KeyRotateRequest):
     db.commit()
     db.close()
 
+    write_audit_log(req.user_id, "key_rotated", "기존 키 서명 검증 통과")
     return {"message": "공개키 교체 완료 (기존 키 서명 검증 통과)"}
