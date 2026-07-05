@@ -82,8 +82,8 @@ flowchart LR
 - [x] **Phase 1-5** — ECC vs PQC 연산 오버헤드 정량 벤치마크
 - [x] **Phase 2-1** — 클라이언트 개인정보 DEK 기반 암호화 저장 (Vault) — 서버 DB 다이어트
 - [x] **Phase 2-2** — 분산 서비스 검증 파이프라인 — 서버는 검증만, 메모리 처리 후 즉시 삭제
-- [ ] **Phase 3-1** — 공개키 교체 공격 방어 (기존 기기 서명 없이 공개키 변경 불가) + 감사 로그(Audit Log) 해시체인
-- [ ] **Phase 3-1-확장** — Auth DB / Audit Log 분리 (인증 이력 별도 테이블로 분리)
+- [x] **Phase 3-1** — 공개키 교체 공격 방어 (기존 기기 서명 없이 공개키 변경 불가) + 감사 로그(Audit Log) 해시체인
+- [x] **Phase 3-1-확장** — Auth DB / Audit Log 분리 (인증 이력 별도 테이블로 분리)
 - [ ] **Phase 3-2** — Context Integrity 서명 (컨텍스트 위변조 방지)
 - [ ] **Phase 3-3** — Oracle Attack 방어 (에러 메시지 통일)
 - [ ] **Phase 3-4** — 비동기 처리 개선 (PQC 연산 run_in_threadpool)
