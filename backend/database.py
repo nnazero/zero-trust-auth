@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine, Column, String, Boolean, Integer
 from sqlalchemy.orm import declarative_base, sessionmaker
+from datetime import datetime
 
 engine = create_engine("sqlite:///zerotrust.db")
 
@@ -22,15 +23,14 @@ class DeviceProfile(Base):
     agent_required = Column(Boolean, default=True)
 
 
-Base.metadata.create_all(bind=engine)
-
-from datetime import datetime
-
 class AuditLog(Base):
     __tablename__ = "audit_logs"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(String, nullable=False)
-    event = Column(String, nullable=False)   # login_success, login_fail, key_rotated 등
+    event = Column(String, nullable=False)
     detail = Column(String, nullable=True)
     timestamp = Column(String, nullable=False)
+
+
+Base.metadata.create_all(bind=engine)
