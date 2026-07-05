@@ -28,6 +28,8 @@ class RegisterRequest(BaseModel):
 class SignRequest(BaseModel):
     user_id: str
     challenge: str
+    client_ip: str
+    is_agent_safe: bool
 
 class AuthRequest(BaseModel):
     user_id: str
@@ -99,7 +101,8 @@ def sign(req: SignRequest):
         raise HTTPException(status_code=404, detail="키 없음, 먼저 /register 호출")
 
     secret_key = key_store[req.user_id]
-    signature = pqc_sign.sign(req.challenge.encode(), secret_key)
+    message = f"{req.challenge}|{req.client_ip}|{req.is_agent_safe}".encode()
+    signature = pqc_sign.sign(message, secret_key)
     return {"signature": base64.b64encode(signature).decode()}
 
 
@@ -150,7 +153,8 @@ def verify(req: AuthRequest):
         public_key = base64.b64decode(user.public_key)
         signature = base64.b64decode(req.signature)
 
-        pqc_sign.verify(signature, challenge.encode(), public_key)
+        message = f"{challenge}|{req.client_ip}|{req.is_agent_safe}".encode()
+        pqc_sign.verify(signature, message, public_key)
 
         del challenge_store[req.user_id]
 
