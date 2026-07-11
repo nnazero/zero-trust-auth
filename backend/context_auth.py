@@ -113,21 +113,18 @@ def check_context(user_id: str, is_agent_safe: bool, client_ip: str):
     db.close()
 
     if not profile:
-        raise HTTPException(status_code=404, detail="기기 프로필 없음")
+        raise HTTPException(status_code=401, detail="인증에 실패했습니다")
 
     # 잠금 1: 보안 에이전트 요구사항 확인
     if profile.agent_required and not is_agent_safe:
-        raise HTTPException(
-            status_code=403,
-            detail="이중 잠금 실패: 보안 에이전트가 실행중이지 않습니다"
-        )
+        write_audit_log(user_id, "context_fail", "보안 에이전트 미실행")
+        raise HTTPException(status_code=401, detail="인증에 실패했습니다")
 
     # 잠금 2: 등록된 IP와 일치 여부 확인
     if client_ip != profile.trusted_ip:
-        raise HTTPException(
-            status_code=403,
-            detail=f"이중 잠금 실패: 등록된 기기가 아닙니다 (등록IP: {profile.trusted_ip}, 현재IP: {client_ip})"
-        )
+        write_audit_log(user_id, "context_fail", f"IP 불일치 등록:{profile.trusted_ip} 현재:{client_ip}")
+        raise HTTPException(status_code=401, detail="인증에 실패했습니다")
+    
 
 # 4. 서명 + 이중 잠금 검증
 @app.post("/verify")
@@ -137,11 +134,11 @@ def verify(req: AuthRequest):
     db.close()
 
     if not user:
-        raise HTTPException(status_code=404, detail="유저 없음")
+        raise HTTPException(status_code=401, detail="인증에 실패했습니다")
 
     challenge = challenge_store.get(req.user_id)
     if not challenge:
-        raise HTTPException(status_code=400, detail="챌린지 없음")
+        raise HTTPException(status_code=401, detail="인증에 실패했습니다")
 
     try:
         check_context(req.user_id, req.is_agent_safe, req.client_ip)
@@ -170,7 +167,8 @@ def verify(req: AuthRequest):
     except HTTPException:
         raise
     except Exception:
-        raise HTTPException(status_code=401, detail="서명 검증 실패")
+        write_audit_log(req.user_id, "login_fail", "서명 검증 실패")
+        raise HTTPException(status_code=401, detail="인증에 실패했습니다")
 
 @app.get("/")
 def root():
