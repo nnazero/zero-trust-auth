@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from starlette.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import os, base64
@@ -96,13 +97,13 @@ def get_challenge(user_id: str):
     return {"challenge": challenge}
 
 @app.post("/sign")
-def sign(req: SignRequest):
+async def sign(req: SignRequest):
     if req.user_id not in key_store:
         raise HTTPException(status_code=404, detail="키 없음, 먼저 /register 호출")
 
     secret_key = key_store[req.user_id]
     message = f"{req.challenge}|{req.client_ip}|{req.is_agent_safe}".encode()
-    signature = pqc_sign.sign(message, secret_key)
+    signature = await run_in_threadpool(pqc_sign.sign, message, secret_key)
     return {"signature": base64.b64encode(signature).decode()}
 
 
@@ -128,7 +129,7 @@ def check_context(user_id: str, is_agent_safe: bool, client_ip: str):
 
 # 4. 서명 + 이중 잠금 검증
 @app.post("/verify")
-def verify(req: AuthRequest):
+async def verify(req: AuthRequest):
     db = SessionLocal()
     user = db.query(User).filter(User.user_id == req.user_id).first()
     db.close()
@@ -151,7 +152,7 @@ def verify(req: AuthRequest):
         signature = base64.b64decode(req.signature)
 
         message = f"{challenge}|{req.client_ip}|{req.is_agent_safe}".encode()
-        pqc_sign.verify(signature, message, public_key)
+        await run_in_threadpool(pqc_sign.verify, signature, message, public_key)
 
         del challenge_store[req.user_id]
 
@@ -242,7 +243,7 @@ def logout(req: LogoutRequest):
 
 # 9. 공개키 교체
 @app.post("/rotate-key")
-def rotate_key(req: KeyRotateRequest):
+async def rotate_key(req: KeyRotateRequest):
     db = SessionLocal()
     user = db.query(User).filter(User.user_id == req.user_id).first()
 
@@ -254,7 +255,7 @@ def rotate_key(req: KeyRotateRequest):
         public_key = base64.b64decode(user.public_key)
         signature = base64.b64decode(req.signature)
         message = f"rotate:{req.user_id}:{req.new_public_key}".encode()
-        pqc_sign.verify(signature, message, public_key)
+        await run_in_threadpool(pqc_sign.verify, signature, message, public_key)
     except Exception:
         db.close()
         raise HTTPException(status_code=401, detail="기존 키 서명 검증 실패")
