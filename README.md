@@ -86,7 +86,7 @@ flowchart LR
 - [x] **Phase 3-1-확장** — Auth DB / Audit Log 분리 (인증 이력 별도 테이블로 분리)
 - [x] **Phase 3-2** — Context Integrity 서명 (컨텍스트 위변조 방지)
 - [x] **Phase 3-3** — Oracle Attack 방어 (에러 메시지 통일)
-- [ ] **Phase 3-4** — 비동기 처리 개선 (PQC 연산 run_in_threadpool)
+- [x] **Phase 3-4** — 비동기 처리 개선 (PQC 연산 run_in_threadpool)
 - [ ] **Phase 3-5** — 위협 모델 문서화, WebAuthn/FIDO2 비교 분석
 - [ ] **Phase 3-6** — 위협 모델 문서화, WebAuthn/FIDO2 비교 분석
 
